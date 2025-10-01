@@ -45,7 +45,7 @@ public class PanController : MonoBehaviour
 
         Vector3 currentRotation = panPivot.localEulerAngles;
         panPivot.localEulerAngles = new Vector3(currentRotation.x, currentRotation.y, currentZRotation);
-        Debug.Log($"Rotation: {currentZRotation}");
+        //Debug.Log($"Rotation: {currentZRotation}");
     }
 
     private void ApplyGravity(float deltaTime) 
@@ -62,7 +62,7 @@ public class PanController : MonoBehaviour
             Vector3 currentRotation = panPivot.localEulerAngles;
 
             panPivot.localEulerAngles = new Vector3(currentRotation.x, currentRotation.y, currentZRotation);
-            Debug.Log($"Rotation: {currentZRotation}");
+            //Debug.Log($"Rotation: {currentZRotation}");
         }
     }
 }
