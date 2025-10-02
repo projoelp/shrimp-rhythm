@@ -11,11 +11,15 @@ public class PanController : MonoBehaviour
     private float currentZRotation = 0f;
     private float gravityThreshold = 5f;
     private float gravitySpeed = 300f;
+    private bool toggle_panGravity = false;
 
     private void FixedUpdate()
     {
         float rotationalInput = 0f;
-
+        if (Input.GetKey(KeyCode.Space) )
+        {
+            toggle_panGravity = !toggle_panGravity;
+        }
         if (Input.GetKey(KeyCode.A))
         {
             rotationalInput = 1f;
@@ -31,7 +35,9 @@ public class PanController : MonoBehaviour
         }
         else 
         {
-            ApplyGravity(Time.deltaTime);
+            if (!toggle_panGravity) {
+                ApplyGravity(Time.deltaTime);
+            }
         }
     }
 
