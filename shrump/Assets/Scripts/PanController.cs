@@ -13,20 +13,41 @@ public class PanController : MonoBehaviour
     private float gravitySpeed = 300f;
     private bool toggle_panGravity = false;
 
-    private void FixedUpdate()
+    private float time_lastInput;
+    [SerializeField] private float burnTimer = 10f;
+
+    private void Start()
     {
+        time_lastInput = Time.time;
+    }
+    private void Update()
+    {
+        if (Time.time - time_lastInput > burnTimer)
+        {
+            Debug.Log("ow !! ouch!1 im b urining!!");
+        }
+        else 
+        {
+            Debug.Log($"Time left until burn: {burnTimer - (Time.time - time_lastInput)}");
+        }
+
+        
+
         float rotationalInput = 0f;
-        if (Input.GetKey(KeyCode.Space) )
+        if (Input.GetKeyDown(KeyCode.Space) )
         {
             toggle_panGravity = !toggle_panGravity;
+            
         }
         if (Input.GetKey(KeyCode.A))
         {
             rotationalInput = 1f;
+            time_lastInput = Time.time;
         }
         if (Input.GetKey(KeyCode.D))
         {
             rotationalInput = -1f;
+            time_lastInput = Time.time;
         }
 
         if (rotationalInput != 0)

@@ -36,17 +36,17 @@ public class LiquidSpawner : MonoBehaviour
         if (spawnDualParticles)
         {
             Instantiate(liquidParticlePrefab, position, Quaternion.identity);
-            Debug.Log("spanwed particle");
+            //Debug.Log("spanwed particle");
 
             Vector2 offset = new Vector2(Random.Range(-2f, 2f), Random.Range(-2f, 2f));
 
             Instantiate(liquidParticlePrefab, position + offset, Quaternion.identity);
-            Debug.Log("spanwed particle");
+            //Debug.Log("spanwed particle");
         }
         else
         {
             Instantiate(liquidParticlePrefab, position, Quaternion.identity);
-            Debug.Log("spanwed particle");
+            //Debug.Log("spanwed particle");
         }
 
         var particles = Physics2D.OverlapCircleAll(position, 5f);

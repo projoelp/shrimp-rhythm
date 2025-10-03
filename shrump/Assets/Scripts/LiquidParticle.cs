@@ -63,6 +63,7 @@ public class LiquidParticle : MonoBehaviour
 
     private void Update()
     {
+        if (hasCreatedJoint) Debug.Log("created a joint");
         if (Time.time - spawnTime > lifetime)
         {
             Destroy(gameObject);

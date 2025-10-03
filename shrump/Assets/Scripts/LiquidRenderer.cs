@@ -23,7 +23,7 @@ public class LiquidRenderer : MonoBehaviour
     {
         mainCamera = Camera.main;
         UpdateScreenSize();
-        SetupShaderParameters();
+        //SetupShaderParameters();
     }
 
     private void UpdateScreenSize()
