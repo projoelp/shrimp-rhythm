@@ -469,11 +469,11 @@ Transform:
   m_GameObject: {fileID: 1174068792}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.37400007, z: 0}
+  m_LocalPosition: {x: 0, y: 0.24800007, z: 0}
   m_LocalScale: {x: 4.68, y: 4.83683, z: 6.5748806}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 1964565843}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1174068795
 MonoBehaviour:
@@ -489,6 +489,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waterMaterial: {fileID: 2100000, guid: e11084ada802d9043b8c45f53139c266, type: 2}
   renderQuad: {fileID: 1922131562}
+  maxShaderParticles: 50
+  particleRadius: 0.01
+  threshold: 0
+  smoothing: 0.09
+  streamStretch: 1.01
   liquidColor: {r: 0.725, g: 0.529, b: 1, a: 1}
   outlineColor: {r: 0.769, g: 0.749, b: 0.925, a: 1}
   outlineWidth: 0.002
@@ -681,11 +686,11 @@ Transform:
   m_GameObject: {fileID: 1922131558}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.37400007, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.24800007, z: 0}
+  m_LocalScale: {x: 2.9269, y: 2.9269, z: 2.9269}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 1964565843}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1964565842
 GameObject:
@@ -718,8 +723,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 877076813}
-  - {fileID: 1922131562}
-  - {fileID: 1174068794}
   m_Father: {fileID: 366175111}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!68 &1964565844
@@ -858,3 +861,5 @@ SceneRoots:
   - {fileID: 1400709500}
   - {fileID: 162714857}
   - {fileID: 921905362}
+  - {fileID: 1922131562}
+  - {fileID: 1174068794}

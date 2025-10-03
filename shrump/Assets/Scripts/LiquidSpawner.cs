@@ -14,10 +14,17 @@ public class LiquidSpawner : MonoBehaviour
     [SerializeField] private float spawnInterval = 0.1f;
     [SerializeField] private bool autoSpawn = false;
 
+    private bool toggle_particleSpawn = false;
+
     private float lastSpawnTime;
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.LeftControl)) 
+        {
+            autoSpawn = !autoSpawn;
+        }
+
         if (autoSpawn && Time.time - lastSpawnTime >= spawnInterval)
         {
             SpawnParticle(transform.position, spawnVelocity);

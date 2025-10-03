@@ -73,19 +73,19 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _OutlineWidth: 0.0112
+    - _OutlineWidth: 0.0255
     - _Parallax: 0.02
-    - _ParticleRadius: 0.029
-    - _PixelSize: 8
+    - _ParticleRadius: 0.019
+    - _PixelSize: 2
     - _Pixelated: 1
     - _Smoothing: 0.117
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StreamStretch: 1.41
-    - _TeardropIntensity: 0.64
-    - _TextureScale: 2
-    - _Threshold: 0.0212
+    - _StreamStretch: 1.79
+    - _TeardropIntensity: 0.4
+    - _TextureScale: 6
+    - _Threshold: 0.0403
     - _UVSec: 0
     - _UseTexture: 1
     - _ZWrite: 1

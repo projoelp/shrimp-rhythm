@@ -42,6 +42,7 @@ Shader "Custom/LiquidSDF"
             struct v2f
             {
                 float2 uv : TEXCOORD0;
+                float3 worldPos : TEXCOORD1;
                 float4 vertex : SV_POSITION;
             };
 
@@ -51,7 +52,7 @@ Shader "Custom/LiquidSDF"
             float _UseTexture;
             float _TextureScale;
             int _ParticleCount;
-            float _ParticlePositions[100];
+            float _ParticlePositions[100]; // Now stores world positions, not UVs
             float _ParticleRadius;
             float _Threshold;
             float _Smoothing;
@@ -68,6 +69,7 @@ Shader "Custom/LiquidSDF"
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
+                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
                 return o;
             }
 
@@ -104,10 +106,15 @@ Shader "Custom/LiquidSDF"
             fixed4 frag (v2f i) : SV_Target
             {
                 float2 uv = i.uv;
+                float2 pixelWorldPos = i.worldPos.xy; // Use XY world position
 
-                // Pixelation
+                // Pixelation - snap world position to pixel grid
                 if (_Pixelated > 0.5)
                 {
+                    float pixelWorldSize = _PixelSize * 0.01; // Convert pixel size to world units
+                    pixelWorldPos = floor(pixelWorldPos / pixelWorldSize) * pixelWorldSize;
+                    
+                    // Also pixelate UVs for texture sampling
                     float2 screen_size = _ScreenParams.xy;
                     uv = floor(uv * screen_size / _PixelSize) * _PixelSize / screen_size;
                 }
@@ -115,15 +122,18 @@ Shader "Custom/LiquidSDF"
                 float closest_distance = 1000.0;
                 bool found_particle = false;
 
-                // Calculate blended SDF
+                // Calculate blended SDF using world-space distances
                 for (int idx = 0; idx < _ParticleCount && idx < 50; idx++)
                 {
                     int pos_idx = idx * 2;
                     if (pos_idx >= 100 || pos_idx + 1 >= 100) break;
-                    if (_ParticlePositions[pos_idx] < 0.0 || _ParticlePositions[pos_idx + 1] < 0.0) continue;
-
-                    float2 particle_pos = float2(_ParticlePositions[pos_idx], _ParticlePositions[pos_idx + 1]);
-                    float2 to_particle = uv - particle_pos;
+                    
+                    float2 particle_world_pos = float2(_ParticlePositions[pos_idx], _ParticlePositions[pos_idx + 1]);
+                    
+                    // Skip invalid particles
+                    if (particle_world_pos.x < -999.0) continue;
+                    
+                    float2 to_particle = pixelWorldPos - particle_world_pos;
 
                     float dist;
 

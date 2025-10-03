@@ -7,11 +7,11 @@ public class LiquidRenderer : MonoBehaviour
     [Header("Shader Settings")]
     [SerializeField] private Material waterMaterial;
     [SerializeField] private Transform renderQuad; // Reference to the quad with the shader
-    [Range(0, 50)] private int maxShaderParticles = 50;
-    [Range(0.001f, 0.2f)] private float particleRadius = 0.01f;
-    [Range(0.0f, 0.1f)] private float threshold = 0.0f;
-    [Range(0.0f,0.2f)] private float smoothing = 0.09f;
-    [Range(1.0f, 4.0f)] private float streamStretch = 1.01f;
+    [SerializeField] private int maxShaderParticles = 50;
+    [SerializeField] private float particleRadius = 0.00002f;
+    [SerializeField] private float threshold = 0.008f;
+    [SerializeField] private float smoothing = 0.018f;
+    [SerializeField] private float streamStretch = 2.8f;
     [SerializeField] private Color liquidColor = new Color(0.725f, 0.529f, 1.0f, 1.0f);
     [SerializeField] private Color outlineColor = new Color(0.769f, 0.749f, 0.925f, 1.0f);
     [SerializeField] private float outlineWidth = 0.002f;
@@ -23,20 +23,12 @@ public class LiquidRenderer : MonoBehaviour
     {
         mainCamera = Camera.main;
         UpdateScreenSize();
-        //SetupShaderParameters();
+        // SetupShaderParameters(); // Commented out - edit material directly instead
     }
 
     private void UpdateScreenSize()
     {
-        if (renderQuad != null)
-        {
-            // Use the quad's scale to define the render area
-            screenSize = new Vector2(renderQuad.localScale.x, renderQuad.localScale.y);
-        }
-        else
-        {
-            screenSize = new Vector2(Screen.width, Screen.height);
-        }
+        screenSize = new Vector2(Screen.width, Screen.height);
     }
 
     private void SetupShaderParameters()
@@ -77,7 +69,7 @@ public class LiquidRenderer : MonoBehaviour
         float[] positions = new float[maxShaderParticles * 2];
         float[] velocities = new float[maxShaderParticles * 2];
 
-        // Fill with particle data
+        // Fill with particle data - now using world positions directly
         for (int i = 0; i < count; i++)
         {
             var particle = sortedParticles[i];
@@ -85,27 +77,8 @@ public class LiquidRenderer : MonoBehaviour
 
             Vector2 worldPos = particle.transform.position;
 
-            // Convert world position to UV coordinates relative to the render quad
-            float uvX, uvY;
-
-            if (renderQuad != null)
-            {
-                // Transform particle position to quad's local space
-                Vector3 localPos = renderQuad.InverseTransformPoint(new Vector3(worldPos.x, worldPos.y, renderQuad.position.z));
-
-                // Convert to 0-1 UV range (quad is centered, so -0.5 to 0.5 becomes 0 to 1)
-                uvX = localPos.x + 0.5f;
-                uvY = localPos.y + 0.5f;
-            }
-            else
-            {
-                // Fallback to screen space
-                uvX = worldPos.x / screenSize.x;
-                uvY = worldPos.y / screenSize.y;
-            }
-
-            positions[i * 2] = uvX;
-            positions[i * 2 + 1] = uvY;
+            positions[i * 2] = worldPos.x;
+            positions[i * 2 + 1] = worldPos.y;
 
             Vector2 vel = particle.GetVelocity().normalized;
             velocities[i * 2] = vel.x;
@@ -115,8 +88,8 @@ public class LiquidRenderer : MonoBehaviour
         // Fill remaining with invalid markers
         for (int i = count; i < maxShaderParticles; i++)
         {
-            positions[i * 2] = -1f;
-            positions[i * 2 + 1] = -1f;
+            positions[i * 2] = -1000f; // Use -1000 instead of -1 for world space
+            positions[i * 2 + 1] = -1000f;
             velocities[i * 2] = 0f;
             velocities[i * 2 + 1] = 1f;
         }
