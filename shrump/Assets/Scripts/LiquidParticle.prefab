@@ -70,7 +70,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 3962002140399414797}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 00cc65f1f0af3454f935c50c9b9ce35b, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -108,8 +108,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ec8ee7663fcdf444ab985f39841cb14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifetime: 10
+  lifetime: 1000
   offscreenMargin: 200
-  jointDistance: 50
-  jointMinDistance: 10
-  jointSoftneess: 0.5
+  jointSearchRadius: 0.1
+  jointTargetDistance: 0.11
+  maxConnections: 2
+  breakDistanceThreshold: 20
+  breakYThreshold: 0.1

@@ -24,11 +24,11 @@ public class PanController : MonoBehaviour
     {
         if (Time.time - time_lastInput > burnTimer)
         {
-            Debug.Log("ow !! ouch!1 im b urining!!");
+            //Debug.Log("ow !! ouch!1 im b urining!!");
         }
         else 
         {
-            Debug.Log($"Time left until burn: {burnTimer - (Time.time - time_lastInput)}");
+            //Debug.Log($"Time left until burn: {burnTimer - (Time.time - time_lastInput)}");
         }
 
         
