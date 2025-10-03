@@ -84,7 +84,7 @@ Material:
     - _SrcBlend: 1
     - _StreamStretch: 1.79
     - _TeardropIntensity: 0.4
-    - _TextureScale: 6
+    - _TextureScale: 10
     - _Threshold: 0.0403
     - _UVSec: 0
     - _UseTexture: 1
