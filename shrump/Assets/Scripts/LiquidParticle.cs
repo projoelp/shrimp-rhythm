@@ -19,10 +19,23 @@ public class LiquidParticle : MonoBehaviour
     [SerializeField] private float breakDistanceThreshold = 0.15f; // max distance allowed
     [SerializeField] private float breakYThreshold = 0.08f;        // max vertical gap allowed
 
+    [Header("Random Upward Force")]
+    [SerializeField] private bool enableRandomUpwardForce = true;
+    [SerializeField] private float minForceInterval = 0.5f;
+    [SerializeField] private float maxForceInterval = 2f;
+    [SerializeField] private float minUpwardForce = 0.1f;
+    [SerializeField] private float maxUpwardForce = 0.3f;
+    [SerializeField] private float horizontalForceVariance = 0.1f; // random left/right component
+    [SerializeField] private float jointProtectionTime = 0.5f; // New: protect joints after force
+
+    private float lastForceTime;
+    private bool jointsProtected = false;
+
     private Rigidbody2D rb;
     private float spawnTime;
     private Camera mainCamera;
     private int currentConnections = 0;
+    private float nextForceTime;
 
     private void Awake()
     {
@@ -32,6 +45,7 @@ public class LiquidParticle : MonoBehaviour
 
         spawnTime = Time.time;
         mainCamera = Camera.main;
+        ScheduleNextForce();
     }
 
     private void Start()
@@ -55,10 +69,49 @@ public class LiquidParticle : MonoBehaviour
         }
 
         CheckBadJoints();
+
+        // Check if it's time to apply random upward force
+        if (enableRandomUpwardForce && Time.time >= nextForceTime)
+        {
+            ApplyRandomUpwardForce();
+            ScheduleNextForce();
+        }
+    }
+
+    private void ApplyRandomUpwardForce()
+    {
+        if (rb == null) return;
+
+        float upwardForce = UnityEngine.Random.Range(minUpwardForce, maxUpwardForce);
+        float horizontalForce = UnityEngine.Random.Range(-horizontalForceVariance, horizontalForceVariance);
+
+        Vector2 force = new Vector2(horizontalForce, upwardForce);
+        rb.AddForce(force, ForceMode2D.Impulse);
+
+        lastForceTime = Time.time;
+        jointsProtected = true;
+
+        Debug.Log($"{gameObject.name}: Applied random upward force: {force}");
+    }
+
+    private void ScheduleNextForce()
+    {
+        if (enableRandomUpwardForce)
+        {
+            nextForceTime = Time.time + UnityEngine.Random.Range(minForceInterval, maxForceInterval);
+        }
     }
 
     private void CheckBadJoints()
     {
+        // Skip joint checking if we recently applied a force
+        if (jointsProtected && Time.time - lastForceTime < jointProtectionTime)
+            return;
+
+        // Reset protection if time has passed
+        if (jointsProtected && Time.time - lastForceTime >= jointProtectionTime)
+            jointsProtected = false;
+
         DistanceJoint2D[] joints = GetComponents<DistanceJoint2D>();
         foreach (var joint in joints)
         {
@@ -66,7 +119,6 @@ public class LiquidParticle : MonoBehaviour
 
             float yDiff = Mathf.Abs(transform.position.y - joint.connectedBody.position.y);
 
-            // Only break if vertical gap exceeds threshold
             if (yDiff > breakYThreshold)
             {
                 Debug.Log($"{gameObject.name}: Breaking joint with {joint.connectedBody.name} (y={yDiff:F3})");
@@ -75,7 +127,6 @@ public class LiquidParticle : MonoBehaviour
             }
         }
     }
-
 
     private void TryCreateJoints()
     {

@@ -95,7 +95,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.03
+  m_Radius: 0.05
 --- !u!114 &4481531555234983705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,6 +112,13 @@ MonoBehaviour:
   offscreenMargin: 200
   jointSearchRadius: 0.1
   jointTargetDistance: 0.11
-  maxConnections: 2
+  maxConnections: 4
   breakDistanceThreshold: 20
   breakYThreshold: 0.1
+  enableRandomUpwardForce: 1
+  minForceInterval: 0.5
+  maxForceInterval: 2
+  minUpwardForce: 0.1
+  maxUpwardForce: 0.2
+  horizontalForceVariance: 0.1
+  jointProtectionTime: 0.5

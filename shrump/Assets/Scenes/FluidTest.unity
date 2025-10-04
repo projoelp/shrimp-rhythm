@@ -152,11 +152,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   liquidParticlePrefab: {fileID: 3962002140399414797, guid: bd16c954504fc374eadc3245e800f127, type: 3}
-  spawnDualParticles: 1
+  spawnDualParticles: 0
   spawnOffset: {x: 0, y: 0}
   spawnVelocity: {x: 0, y: -100}
   spawnInterval: 0.1
-  autoSpawn: 1
+  autoSpawn: 0
+  particlesToSpawn: 40
+  fixedSpawnKey: 102
 --- !u!4 &162714857
 Transform:
   m_ObjectHideFlags: 0
@@ -166,7 +168,7 @@ Transform:
   m_GameObject: {fileID: 162714855}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.683, z: 0}
+  m_LocalPosition: {x: 0, y: 1.324, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -343,14 +345,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 921905361}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13960512, y: 0, z: 0, w: 0.99020725}
+  m_LocalRotation: {x: 0.15013936, y: 0, z: 0, w: 0.98866487}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 963194228}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 16.05, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 17.27, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,7 +412,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 40
+  field of view: 35
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -437,7 +439,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: -1.782}
+  m_LocalPosition: {x: 0, y: -0, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1.4384}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -489,7 +491,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waterMaterial: {fileID: 2100000, guid: e11084ada802d9043b8c45f53139c266, type: 2}
   renderQuad: {fileID: 1922131562}
-  maxShaderParticles: 50
+  maxShaderParticles: 100
   particleRadius: 0.01
   threshold: 0
   smoothing: 0.09
@@ -506,6 +508,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 1964565843}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -519,7 +533,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071067
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalRotation.x
@@ -527,15 +541,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -544,6 +558,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5301fe135c71bd64a8f6c0f0f5d4c767, type: 3}
       propertyPath: m_Name
@@ -579,7 +597,7 @@ Transform:
   m_GameObject: {fileID: 1400709499}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.126, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -757,13 +775,14 @@ EdgeCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.03}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0.06
   m_Points:
-  - {x: -0.6700696, y: 0.20626014}
-  - {x: -0.44937342, y: -0.009893203}
-  - {x: 0.45372915, y: -0.008028844}
-  - {x: 0.6677571, y: 0.21019706}
+  - {x: -0.8598317, y: 0.11754151}
+  - {x: -0.52900106, y: -0.11200386}
+  - {x: 0.026657492, y: -0.19116703}
+  - {x: 0.57566625, y: -0.09940302}
+  - {x: 0.87630594, y: 0.11970796}
   m_AdjacentStartPoint: {x: 0, y: 0}
   m_AdjacentEndPoint: {x: 0, y: 0}
   m_UseAdjacentStartPoint: 0
@@ -846,8 +865,8 @@ Transform:
   m_GameObject: {fileID: 2027984670}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.193, z: -1.232}
-  m_LocalScale: {x: 0.1, y: 0.10000001, z: 0.10000001}
+  m_LocalPosition: {x: 0.193, y: 0.596, z: -2.699}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
