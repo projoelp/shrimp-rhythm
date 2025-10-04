@@ -11,13 +11,13 @@ public class LiquidParticle : MonoBehaviour
     [SerializeField] private float offscreenMargin = 200f;
 
     [Header("Joint Settings")]
-    [SerializeField] private float jointSearchRadius = 0.1f;   // how far to look for neighbors
-    [SerializeField] private float jointTargetDistance = 0.02f; // how tightly grains stick
-    [SerializeField] private int maxConnections = 10;            // how many neighbors one grain can stick to
+    [SerializeField] private float jointSearchRadius = 0.1f;
+    [SerializeField] private float jointTargetDistance = 0.02f;
+    [SerializeField] private int maxConnections = 10;
 
     [Header("Joint Break Settings")]
-    [SerializeField] private float breakDistanceThreshold = 0.15f; // max distance allowed
-    [SerializeField] private float breakYThreshold = 0.08f;        // max vertical gap allowed
+    [SerializeField] private float breakDistanceThreshold = 0.15f;
+    [SerializeField] private float breakYThreshold = 0.08f;
 
     [Header("Random Upward Force")]
     [SerializeField] private bool enableRandomUpwardForce = true;
@@ -25,23 +25,42 @@ public class LiquidParticle : MonoBehaviour
     [SerializeField] private float maxForceInterval = 2f;
     [SerializeField] private float minUpwardForce = 0.1f;
     [SerializeField] private float maxUpwardForce = 0.3f;
-    [SerializeField] private float horizontalForceVariance = 0.1f; // random left/right component
-    [SerializeField] private float jointProtectionTime = 0.5f; // New: protect joints after force
+    [SerializeField] private float horizontalForceVariance = 0.1f;
+    [SerializeField] private float jointProtectionTime = 0.5f;
+
+    [Header("Burn Settings")]
+    [SerializeField] private float timeToBurn = 5f; // How long burning takes
+    [SerializeField] private Color burnedColor = new Color(0.3f, 0.2f, 0.1f); // Dark brown
 
     private float lastForceTime;
     private bool jointsProtected = false;
 
     private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
     private float spawnTime;
     private Camera mainCamera;
     private int currentConnections = 0;
     private float nextForceTime;
+
+    // Burn state
+    private bool isBurned = false;
+    private float burnTimer = 0f;
+    private Color originalColor;
+
+    public bool IsBurned => isBurned;
+    public float BurnProgress => Mathf.Clamp01(burnTimer / timeToBurn);
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            originalColor = spriteRenderer.color;
+        }
 
         spawnTime = Time.time;
         mainCamera = Camera.main;
@@ -50,7 +69,6 @@ public class LiquidParticle : MonoBehaviour
 
     private void Start()
     {
-        // Delay slightly so particles spawn before searching for neighbors
         Invoke(nameof(TryCreateJoints), 1f);
     }
 
@@ -70,11 +88,56 @@ public class LiquidParticle : MonoBehaviour
 
         CheckBadJoints();
 
-        // Check if it's time to apply random upward force
         if (enableRandomUpwardForce && Time.time >= nextForceTime)
         {
             ApplyRandomUpwardForce();
             ScheduleNextForce();
+        }
+    }
+
+    // Called by OrderManager when pan is burning
+    public void AddBurnTime(float deltaTime)
+    {
+        if (isBurned) return; // Already burned
+
+        burnTimer += deltaTime;
+
+        // Update visual appearance as it burns
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.Lerp(originalColor, burnedColor, BurnProgress);
+        }
+
+        // Check if fully burned
+        if (burnTimer >= timeToBurn)
+        {
+            SetBurned();
+        }
+    }
+
+    private void SetBurned()
+    {
+        if (isBurned) return;
+
+        isBurned = true;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = burnedColor;
+        }
+
+        Debug.Log($"{gameObject.name}: BURNED!");
+    }
+
+    // Reset burn state (if you want to salvage partially burned rice)
+    public void ResetBurnState()
+    {
+        isBurned = false;
+        burnTimer = 0f;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
         }
     }
 
@@ -104,11 +167,9 @@ public class LiquidParticle : MonoBehaviour
 
     private void CheckBadJoints()
     {
-        // Skip joint checking if we recently applied a force
         if (jointsProtected && Time.time - lastForceTime < jointProtectionTime)
             return;
 
-        // Reset protection if time has passed
         if (jointsProtected && Time.time - lastForceTime >= jointProtectionTime)
             jointsProtected = false;
 
@@ -195,15 +256,12 @@ public class LiquidParticle : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Search radius
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, jointSearchRadius);
 
-        // Target sticking distance
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, jointTargetDistance);
 
-        // Draw connections
         Gizmos.color = Color.green;
         DistanceJoint2D[] joints = GetComponents<DistanceJoint2D>();
         foreach (var j in joints)

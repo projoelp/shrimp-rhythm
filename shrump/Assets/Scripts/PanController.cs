@@ -8,10 +8,12 @@ public class PanController : MonoBehaviour
     [SerializeField] private float rotationSpeed = 120f;
     private float maxRotation = 180f;
 
-    private float currentZRotation = 0f;
+    public float currentZRotation = 0f;
     private float gravityThreshold = 5f;
     private float gravitySpeed = 300f;
     private bool toggle_panGravity = false;
+    public bool IsBurning => Time.time - time_lastInput > burnTimer;
+    public Transform PanTransform => panPivot != null ? panPivot : transform;
 
     private float time_lastInput;
     [SerializeField] private float burnTimer = 10f;
@@ -22,7 +24,7 @@ public class PanController : MonoBehaviour
     }
     private void Update()
     {
-        if (Time.time - time_lastInput > burnTimer)
+        if (IsBurning)
         {
             //Debug.Log("ow !! ouch!1 im b urining!!");
         }
