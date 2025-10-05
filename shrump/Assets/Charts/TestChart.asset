@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3687f9977fe5374a93aa5094e382c5e, type: 3}
+  m_Name: TestChart
+  m_EditorClassIdentifier: 
+  chartName: Test Chart (Alternating)
+  songName: Battle Test
+  bpm: 150
+  audioClip: {fileID: 8300000, guid: 270d54a46f2dd7b489070f64eaebe502, type: 3}
+  offsetMs: 2000
+  notes:
+  - beatNumber: 1
+    lane: 0
+  - beatNumber: 2
+    lane: 1
+  - beatNumber: 3
+    lane: 0
+  - beatNumber: 4
+    lane: 1
+  - beatNumber: 5
+    lane: 0
+  - beatNumber: 6
+    lane: 1
+  - beatNumber: 7
+    lane: 0
+  - beatNumber: 8
+    lane: 1
+  - beatNumber: 9
+    lane: 0
+  - beatNumber: 10
+    lane: 1
+  - beatNumber: 11
+    lane: 0
+  - beatNumber: 12
+    lane: 1
+  - beatNumber: 13
+    lane: 0
+  - beatNumber: 14
+    lane: 1
+  - beatNumber: 15
+    lane: 0
+  - beatNumber: 16
+    lane: 1
