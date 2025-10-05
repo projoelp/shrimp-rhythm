@@ -1,29 +1,29 @@
 using UnityEngine;
 
 /// <summary>
-/// The Referee - coordinates all rhythm game components and manages game state.
-/// This is the single entry point for starting/stopping the game.
+/// The Referee - ONLY component that wires everything together.
+/// Coordinates all components through events.
+/// All other components are independent and communicate through events only.
 /// </summary>
 public class RhythmGameManager : MonoBehaviour
 {
-    [Header("Component References")]
+    [Header("Core Components")]
     [SerializeField] private AudioManager audioManager;
     [SerializeField] private Metronome metronome;
+    [SerializeField] private ChartComposer composer;
+    [SerializeField] private RhythmJudge judge;
 
-    [Header("Game Settings")]
-    [SerializeField] private float bpm = 120f;
-    [SerializeField] private float errorMarginMs = 80f;
+    [Header("Visual Components")]
+    [SerializeField] private NoteSpawner noteSpawner;
+
+    [Header("Timing Settings")]
+    [SerializeField]
+    [Tooltip("How forgiving the timing window is (±ms). Default 80ms = 160ms total window.")]
+    private float timingWindowMs = 80f;
 
     [Header("Score Settings")]
     [SerializeField] private int pointsPerHit = 100;
-    [SerializeField] private int comboMultiplierThreshold = 10; // Combo milestones for multiplier
-
-    [Header("Chart")]
-    [SerializeField] private ChartComposer composer;
-
-    [Header("Visual Display")]
-    [SerializeField] private NoteSpawner noteSpawner;
-
+    [SerializeField] private int comboMultiplierThreshold = 10;
 
     // Game state
     private bool isGameActive = false;
@@ -48,12 +48,11 @@ public class RhythmGameManager : MonoBehaviour
     public int Misses => misses;
     public float Accuracy => (hits + misses) > 0 ? (float)hits / (hits + misses) * 100f : 0f;
 
-    // Singleton pattern for easy access
+    // Singleton
     public static RhythmGameManager Instance { get; private set; }
 
     private void Awake()
     {
-        // Singleton setup
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -64,108 +63,101 @@ public class RhythmGameManager : MonoBehaviour
 
     private void Start()
     {
-        // Validate references
-        if (audioManager == null)
-        {
-            Debug.LogError("RhythmGameManager: AudioManager reference missing!");
-            return;
-        }
-
-        if (metronome == null)
-        {
-            Debug.LogError("RhythmGameManager: Metronome reference missing!");
-            return;
-        }
-
-        // Initialize metronome
-        metronome.Initialize(audioManager, bpm, errorMarginMs);
-
-        // Subscribe to audio manager events
-        audioManager.OnSongEnd += HandleSongEnd;
-
-        Debug.Log("RhythmGameManager: Initialized and ready");
-
-        // Validate composer
-        if (composer == null)
-        {
-            Debug.LogError("RhythmGameManager: ChartComposer reference missing!");
-            return;
-        }
-
-        // Subscribe to composer events
-        composer.OnChartComplete += HandleChartComplete;
-
-        Debug.Log("RhythmGameManager: Initialized and ready");
+        ValidateReferences();
+        SubscribeToEvents();
     }
 
-    /// <summary>
-    /// Starts the rhythm game.
-    /// </summary>
-    // Modify the StartGame() method:
+    private void ValidateReferences()
+    {
+        if (audioManager == null) Debug.LogError("Manager: AudioManager missing!");
+        if (metronome == null) Debug.LogError("Manager: Metronome missing!");
+        if (composer == null) Debug.LogError("Manager: Composer missing!");
+        if (judge == null) Debug.LogError("Manager: Judge missing!");
+        if (noteSpawner == null) Debug.LogWarning("Manager: NoteSpawner missing (optional)");
+    }
+
+    private void SubscribeToEvents()
+    {
+        if (audioManager != null)
+        {
+            audioManager.OnSongEnd += HandleSongEnd;
+        }
+
+        if (metronome != null)
+        {
+            metronome.OnWindowClose += HandleWindowClose;
+        }
+
+        if (composer != null)
+        {
+            composer.OnChartComplete += HandleChartComplete;
+        }
+
+        if (judge != null)
+        {
+            judge.OnSuccess += HandleJudgeSuccess;
+            judge.OnFailure += HandleJudgeFailure;
+        }
+
+        Debug.Log("Manager: All events wired up");
+    }
 
     public void StartGame()
     {
         if (isGameActive)
         {
-            Debug.LogWarning("RhythmGameManager: Game already active!");
+            Debug.LogWarning("Manager: Game already active");
             return;
         }
 
-        // Get chart info
-        composer.GetChartInfo(out float chartBpm, out AudioClip chartAudio);
+        composer.GetChartInfo(out float bpm, out AudioClip audio, out float offsetMs);
 
-        if (chartAudio == null)
+        if (audio == null)
         {
-            Debug.LogError("RhythmGameManager: Chart has no audio clip!");
+            Debug.LogError("Manager: Chart has no audio");
             return;
         }
+
+        Debug.Log($"<color=cyan>Manager: Chart loaded - BPM={bpm}, Offset={offsetMs}ms, TimingWindow=±{timingWindowMs}ms</color>");
+
+        metronome.Initialize(audioManager, bpm, timingWindowMs);
+        ResetGameState();
+
+        audioManager.Play(audio, offsetMs);
+        metronome.StartCounting();
+        composer.StartChart();
+        judge.StartListening();
 
         if (noteSpawner != null)
         {
             noteSpawner.StartSpawning(bpm);
         }
 
-        // Get offset from chart
-        float chartOffset = composer.Chart != null ? composer.Chart.offsetMs : 2000f;
-
-        // Update BPM from chart
-        bpm = chartBpm;
-        metronome.Initialize(audioManager, bpm, errorMarginMs);
-
-        // Reset game state
-        ResetGameState();
-
-        // Start components in order
-        audioManager.Play(chartAudio, chartOffset); // Pass offset here
-        metronome.StartCounting();
-        composer.StartChart();
+        UpdateJudgeGoal();
 
         isGameActive = true;
         OnGameStart?.Invoke();
 
-        Debug.Log($"=== GAME STARTED === (Offset: {chartOffset}ms)");
+        Debug.Log($"=== GAME STARTED === (BPM: {bpm}, Offset: {offsetMs}ms)");
     }
 
-
-    /// <summary>
-    /// Stops the game immediately.
-    /// </summary>
     public void StopGame()
     {
         if (!isGameActive)
         {
-            Debug.LogWarning("RhythmGameManager: Game not active!");
+            Debug.LogWarning("Manager: Game not active");
             return;
         }
+
+        audioManager.Stop();
+        metronome.Stop();
+        composer.StopChart();
+        judge.StopListening();
 
         if (noteSpawner != null)
         {
             noteSpawner.StopSpawning();
         }
-
-        // Stop components
-        audioManager.Stop();
-        metronome.Stop();
 
         isGameActive = false;
         OnGameEnd?.Invoke();
@@ -174,29 +166,18 @@ public class RhythmGameManager : MonoBehaviour
         Debug.Log("=== GAME STOPPED ===");
     }
 
-    private void HandleChartComplete()
-    {
-        Debug.Log("=== CHART COMPLETE ===");
-        // Game continues until song ends, but no more notes to play
-    }
-
-    /// <summary>
-    /// Called by Judge when player successfully hits a note.
-    /// </summary>
-    public void RegisterHit()
+    private void HandleJudgeSuccess(int beat, RhythmChart.Lane lane)
     {
         if (!isGameActive) return;
 
         hits++;
         combo++;
 
-        // Update max combo
         if (combo > maxCombo)
         {
             maxCombo = combo;
         }
 
-        // Calculate score with combo multiplier
         int multiplier = GetComboMultiplier();
         int earnedPoints = pointsPerHit * multiplier;
         score += earnedPoints;
@@ -204,27 +185,86 @@ public class RhythmGameManager : MonoBehaviour
         OnScoreChanged?.Invoke(score);
         OnComboChanged?.Invoke(combo);
 
-        Debug.Log($"<color=green>HIT!</color> +{earnedPoints} pts | Combo: {combo}x | Score: {score}");
+        Debug.Log($"<color=green>Manager: SUCCESS +{earnedPoints}pts | Combo {combo}x</color>");
+
+        if (noteSpawner != null)
+        {
+            noteSpawner.HandleNoteHit(beat, lane);
+        }
+
+        composer.AdvanceToNextNote();
+        UpdateJudgeGoal();
     }
 
-    /// <summary>
-    /// Called by Judge when player misses a note.
-    /// </summary>
-    public void RegisterMiss()
+    // --- CORRECTED FAILURE LOGIC ---
+    private void HandleJudgeFailure(int beat, RhythmChart.Lane lane)
     {
         if (!isGameActive) return;
 
         misses++;
-        combo = 0; // Reset combo on miss
+        combo = 0;
 
         OnComboChanged?.Invoke(combo);
 
-        Debug.Log($"<color=red>MISS!</color> Combo reset | Misses: {misses}");
+        Debug.Log($"<color=red>Manager: FAILURE | Combo reset</color>");
+
+        if (noteSpawner != null)
+        {
+            noteSpawner.HandleNoteMiss(beat, lane);
+        }
+
+        // A failure (wrong key or miss) still resolves the current note, so we must advance.
+        composer.AdvanceToNextNote();
+        UpdateJudgeGoal();
+    }
+
+    // --- CORRECTED WINDOW CLOSE LOGIC ---
+    private void HandleWindowClose(int beat)
+    {
+        if (!isGameActive) return;
+
+        var currentNote = composer.GetCurrentNote();
+
+        // If window closed on our target beat, it's a miss.
+        if (beat == currentNote.beatNumber)
+        {
+            // This will fire the OnFailure event.
+            // Our corrected HandleJudgeFailure will now properly advance the chart.
+            // We no longer need to advance the chart here.
+            judge.NotifyMiss(beat);
+        }
+    }
+
+    private void HandleChartComplete()
+    {
+        Debug.Log("Manager: Chart complete - waiting for song end");
+    }
+
+    private void HandleSongEnd()
+    {
+        if (isGameActive)
+        {
+            StopGame();
+        }
+    }
+
+    private void UpdateJudgeGoal()
+    {
+        if (composer.IsComplete)
+        {
+            Debug.Log("Manager: No more notes");
+            judge.SetGoal(-1, RhythmChart.Lane.Left); // Invalidate the judge's goal
+            return;
+        }
+
+        var note = composer.GetCurrentNote();
+        judge.SetGoal(note.beatNumber, note.lane);
+
+        Debug.Log($"<color=yellow>Manager: Set judge goal -> Beat {note.beatNumber}, Lane {note.lane}</color>");
     }
 
     private int GetComboMultiplier()
     {
-        // Simple multiplier: 1x at 0-9 combo, 2x at 10-19, 3x at 20+, etc.
         return 1 + (combo / comboMultiplierThreshold);
     }
 
@@ -240,20 +280,11 @@ public class RhythmGameManager : MonoBehaviour
         OnComboChanged?.Invoke(combo);
     }
 
-    private void HandleSongEnd()
-    {
-        if (isGameActive)
-        {
-            StopGame();
-        }
-    }
-
     private void LogFinalStats()
     {
         Debug.Log("=== FINAL STATS ===");
         Debug.Log($"Score: {score}");
-        Debug.Log($"Hits: {hits}");
-        Debug.Log($"Misses: {misses}");
+        Debug.Log($"Hits: {hits} | Misses: {misses}");
         Debug.Log($"Accuracy: {Accuracy:F1}%");
         Debug.Log($"Max Combo: {maxCombo}");
     }
@@ -261,32 +292,28 @@ public class RhythmGameManager : MonoBehaviour
     private void OnDestroy()
     {
         if (audioManager != null)
-        {
             audioManager.OnSongEnd -= HandleSongEnd;
-        }
+
+        if (metronome != null)
+            metronome.OnWindowClose -= HandleWindowClose;
 
         if (composer != null)
-        {
             composer.OnChartComplete -= HandleChartComplete;
+
+        if (judge != null)
+        {
+            judge.OnSuccess -= HandleJudgeSuccess;
+            judge.OnFailure -= HandleJudgeFailure;
         }
     }
 
-    // Public utility methods
-    public void SetBPM(float newBpm)
+    public void SetTimingWindow(float newWindowMs)
     {
-        bpm = newBpm;
+        timingWindowMs = newWindowMs;
         if (metronome != null)
         {
-            metronome.SetBPM(newBpm);
+            metronome.SetErrorMargin(newWindowMs);
         }
-    }
-
-    public void SetErrorMargin(float newMarginMs)
-    {
-        errorMarginMs = newMarginMs;
-        if (metronome != null)
-        {
-            metronome.SetErrorMargin(newMarginMs);
-        }
+        Debug.Log($"Manager: Timing window set to ±{timingWindowMs}ms");
     }
 }

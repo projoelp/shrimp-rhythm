@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// The Composer - manages chart progression and provides the current goal to the Judge.
+/// Pure data provider - stores chart and provides current goal.
+/// Does NOT advance itself - Manager controls progression.
 /// </summary>
 public class ChartComposer : MonoBehaviour
 {
@@ -11,11 +12,10 @@ public class ChartComposer : MonoBehaviour
     private int currentNoteIndex = 0;
     private bool isActive = false;
 
-    // Events - now using Lane instead of KeyCode
-    public event System.Action<int, RhythmChart.Lane> OnNewGoal;
+    // Events - Composer only emits when state changes
     public event System.Action OnChartComplete;
 
-    // Public accessors
+    // Public accessors - read-only state
     public RhythmChart Chart => chart;
     public int CurrentNoteIndex => currentNoteIndex;
     public int TotalNotes => chart != null ? chart.NoteCount : 0;
@@ -26,20 +26,20 @@ public class ChartComposer : MonoBehaviour
     {
         if (newChart == null)
         {
-            Debug.LogError("ChartComposer: Cannot load null chart!");
+            Debug.LogError("Composer: Cannot load null chart");
             return false;
         }
 
         if (!newChart.ValidateChart(out string error))
         {
-            Debug.LogError($"ChartComposer: Chart validation failed - {error}");
+            Debug.LogError($"Composer: Chart validation failed - {error}");
             return false;
         }
 
         chart = newChart;
         currentNoteIndex = 0;
 
-        Debug.Log($"ChartComposer: Loaded chart '{chart.chartName}' with {chart.NoteCount} notes");
+        Debug.Log($"Composer: Loaded '{chart.chartName}' with {chart.NoteCount} notes");
         return true;
     }
 
@@ -47,25 +47,25 @@ public class ChartComposer : MonoBehaviour
     {
         if (chart == null)
         {
-            Debug.LogError("ChartComposer: No chart loaded!");
+            Debug.LogError("Composer: No chart loaded");
             return;
         }
 
         currentNoteIndex = 0;
         isActive = true;
 
-        Debug.Log($"<color=cyan>ChartComposer: Starting chart with {chart.NoteCount} notes</color>");
-        EmitCurrentGoal();
-
-        Debug.Log("ChartComposer: Started chart playback");
+        Debug.Log($"<color=cyan>Composer: Started chart playback</color>");
     }
 
     public void StopChart()
     {
         isActive = false;
-        Debug.Log("ChartComposer: Stopped chart playback");
+        Debug.Log("Composer: Stopped");
     }
 
+    /// <summary>
+    /// Manager calls this to advance to next note after validation
+    /// </summary>
     public void AdvanceToNextNote()
     {
         if (!isActive) return;
@@ -74,16 +74,19 @@ public class ChartComposer : MonoBehaviour
 
         if (IsComplete)
         {
-            Debug.Log("ChartComposer: Chart complete!");
+            Debug.Log("Composer: Chart complete!");
             OnChartComplete?.Invoke();
             isActive = false;
         }
         else
         {
-            EmitCurrentGoal();
+            Debug.Log($"<color=cyan>Composer: Advanced to note {currentNoteIndex}/{TotalNotes}</color>");
         }
     }
 
+    /// <summary>
+    /// Get the current note (Manager queries this)
+    /// </summary>
     public RhythmChart.ChartNote GetCurrentNote()
     {
         if (chart == null || IsComplete)
@@ -94,26 +97,22 @@ public class ChartComposer : MonoBehaviour
         return chart.GetNote(currentNoteIndex);
     }
 
-    private void EmitCurrentGoal()
-    {
-        var note = GetCurrentNote();
-        Debug.Log($"<color=cyan>ChartComposer: Emitting goal - Beat {note.beatNumber}, Lane {note.lane}</color>");
-        OnNewGoal?.Invoke(note.beatNumber, note.lane);
-
-        Debug.Log($"ChartComposer: New goal - Beat {note.beatNumber}, Lane {note.lane}");
-    }
-
-    public void GetChartInfo(out float bpm, out AudioClip audio)
+    /// <summary>
+    /// Get chart metadata (Manager queries this)
+    /// </summary>
+    public void GetChartInfo(out float bpm, out AudioClip audio, out float offsetMs)
     {
         if (chart != null)
         {
             bpm = chart.bpm;
             audio = chart.audioClip;
+            offsetMs = chart.offsetMs;
         }
         else
         {
             bpm = 120f;
             audio = null;
+            offsetMs = 2000f;
         }
     }
 }

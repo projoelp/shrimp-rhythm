@@ -16,10 +16,11 @@ public class NoteSpawner : MonoBehaviour
     [SerializeField] private GameObject noteVisualPrefab;
 
     [Header("Spawn Settings")]
-    [SerializeField] private float approachTimeSeconds = 2.0f;
-    [SerializeField] private Transform spawnOffset;
-    //[SerializeField] private Vector3 spawnOffset = new Vector3(0f, 4f, 10f);
+    [Tooltip("How many beats ahead of the hit zone notes will spawn. Higher value = slower notes, more warning.")]
+    [SerializeField] private float scrollSpeed = 4.0f; // Notes appear 4 beats before they should be hit
+    [SerializeField] private float spawnHeight = 10f; // How far above hit zone to spawn
 
+    private float dynamicApproachTime;
     private bool isActive = false;
     private int nextNoteToSpawn = 0;
     private List<NoteVisual> activeNotes = new List<NoteVisual>();
@@ -43,6 +44,12 @@ public class NoteSpawner : MonoBehaviour
         }
 
         beatDurationMs = (60.0f / bpm) * 1000.0f;
+        // --- NEW CODE ---
+        // Calculate the approach time in seconds based on our scroll speed (in beats)
+        float secondsPerBeat = 60.0f / bpm;
+        dynamicApproachTime = scrollSpeed * secondsPerBeat;
+        // --- END NEW CODE ---
+
         nextNoteToSpawn = 0;
         isActive = true;
 
@@ -53,7 +60,7 @@ public class NoteSpawner : MonoBehaviour
             judge.OnFailure += HandleNoteMiss;
         }
 
-        Debug.Log($"NoteSpawner: Started spawning with {composer.TotalNotes} notes, approach time {approachTimeSeconds}s");
+        Debug.Log($"NoteSpawner: Started spawning with {composer.TotalNotes} notes, approach time {dynamicApproachTime}s");
     }
 
     /// <summary>
@@ -101,11 +108,12 @@ public class NoteSpawner : MonoBehaviour
         // Get next note from chart
         RhythmChart.ChartNote nextNote = composer.Chart.GetNote(nextNoteToSpawn);
 
+
         // Calculate when this note's beat will occur
         double noteBeatTimeMs = nextNote.beatNumber * beatDurationMs;
 
         // Calculate when we should spawn it (approachTime before the beat)
-        double noteSpawnTimeMs = noteBeatTimeMs - (approachTimeSeconds * 1000.0);
+        double noteSpawnTimeMs = noteBeatTimeMs - (dynamicApproachTime * 1000.0);
 
         // Check if it's time to spawn
         if (audioManager.SongTimeMs >= noteSpawnTimeMs)
@@ -127,12 +135,12 @@ public class NoteSpawner : MonoBehaviour
         Vector3 targetPosition = hitZone.GetLanePosition(noteData.lane);
 
         // Calculate spawn position (above hit zone)
-        //Vector3 spawnPosition = targetPosition + spawnOffset;
-        Vector3 spawnPosition = new Vector3(spawnOffset.position.x, spawnOffset.position.y, spawnOffset.position.z);
+        Vector3 spawnPosition = targetPosition + Vector3.up * spawnHeight;
 
         // Instantiate note
         GameObject noteObj = Instantiate(noteVisualPrefab, spawnPosition, Quaternion.identity, transform);
         NoteVisual noteVisual = noteObj.GetComponent<NoteVisual>();
+
 
         if (noteVisual == null)
         {
@@ -142,7 +150,7 @@ public class NoteSpawner : MonoBehaviour
         }
 
         // Initialize note
-        noteVisual.Initialize(noteData.beatNumber, noteData.lane, spawnPosition, targetPosition, approachTimeSeconds);
+        noteVisual.Initialize(noteData.beatNumber, noteData.lane, spawnPosition, targetPosition, dynamicApproachTime);
         noteVisual.OnReachedTarget += HandleNoteReachedTarget;
 
         activeNotes.Add(noteVisual);
@@ -157,7 +165,7 @@ public class NoteSpawner : MonoBehaviour
         activeNotes.Remove(note);
     }
 
-    private void HandleNoteHit(int beat, RhythmChart.Lane lane)
+    public void HandleNoteHit(int beat, RhythmChart.Lane lane)
     {
         // Find and destroy the note that was hit
         NoteVisual hitNote = FindNoteByBeat(beat);
@@ -174,7 +182,7 @@ public class NoteSpawner : MonoBehaviour
         }
     }
 
-    private void HandleNoteMiss(int beat, RhythmChart.Lane lane)
+    public void HandleNoteMiss(int beat, RhythmChart.Lane lane)
     {
         // Find and destroy the note that was missed
         NoteVisual missedNote = FindNoteByBeat(beat);

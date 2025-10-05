@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Visual representation of the hit zone where notes should be pressed.
+/// Shows two lanes (Left/Right) with visual feedback.
+/// </summary>
 public class HitZone : MonoBehaviour
 {
     [Header("Lane Settings")]
@@ -20,7 +24,7 @@ public class HitZone : MonoBehaviour
 
     private void Start()
     {
-        // Position lanes with 3D spacing
+        // Position lanes
         if (leftLaneTransform != null)
         {
             leftLaneTransform.localPosition = new Vector3(-laneSpacing / 2f, 0f, 0f);
@@ -36,6 +40,7 @@ public class HitZone : MonoBehaviour
 
     private void Update()
     {
+        // Handle feedback timers
         if (leftLaneFeedbackTimer > 0f)
         {
             leftLaneFeedbackTimer -= Time.deltaTime;
@@ -55,6 +60,9 @@ public class HitZone : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Shows visual feedback for a successful hit in the specified lane.
+    /// </summary>
     public void ShowHitFeedback(RhythmChart.Lane lane)
     {
         SpriteRenderer renderer = GetLaneRenderer(lane);
@@ -65,6 +73,9 @@ public class HitZone : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Shows visual feedback for a miss in the specified lane.
+    /// </summary>
     public void ShowMissFeedback(RhythmChart.Lane lane)
     {
         SpriteRenderer renderer = GetLaneRenderer(lane);
@@ -77,7 +88,6 @@ public class HitZone : MonoBehaviour
 
     /// <summary>
     /// Gets the world position for a specific lane.
-    /// Returns 3D position including Z depth.
     /// </summary>
     public Vector3 GetLanePosition(RhythmChart.Lane lane)
     {

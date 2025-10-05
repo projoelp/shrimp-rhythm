@@ -8,13 +8,12 @@ using UnityEngine;
 public class AudioManager : MonoBehaviour
 {
     [Header("Audio Settings")]
-    [SerializeField] private AudioClip audioClip;
-    [SerializeField] private float songOffsetMs = 0f; // Offset to account for silence at start of audio file
+    [SerializeField] private AudioClip audioClip; // Optional - usually comes from chart
 
     private AudioSource audioSource;
     private double songStartDspTime; // DSP time when song started playing
     private bool isPlaying = false;
-    private float currentOffsetMs = 0f; // Runtime offset (can be different from serialized default)
+    private float currentOffsetMs = 0f; // Runtime offset (set by Manager from chart)
 
     // Events
     public event System.Action OnSongEnd;
@@ -54,20 +53,12 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Starts playing the audio clip at the next DSP time slot.
-    /// Uses the default offset specified in the inspector.
-    /// </summary>
-    public void Play()
-    {
-        Play(audioClip, songOffsetMs);
-    }
-
-    /// <summary>
     /// Plays a specific audio clip with a custom offset.
     /// The offset creates a delay before beat 0 - useful for note approach time.
+    /// Manager should call this with offset from the chart.
     /// </summary>
     /// <param name="clip">Audio clip to play</param>
-    /// <param name="offsetMs">Time in milliseconds before beat 0 (can be negative for files with silence)</param>
+    /// <param name="offsetMs">Time in milliseconds before beat 0 (approach time for notes)</param>
     public void Play(AudioClip clip, float offsetMs = 0f)
     {
         if (clip == null)
@@ -90,8 +81,8 @@ public class AudioManager : MonoBehaviour
         audioSource.Play();
         isPlaying = true;
 
-        Debug.Log($"AudioManager: Started playback at DSP time {songStartDspTime} with offset {currentOffsetMs}ms");
-        Debug.Log($"AudioManager: Beat 0 will occur at song time 0ms (DSP time {songStartDspTime + (currentOffsetMs / 1000.0)})");
+        Debug.Log($"AudioManager: Started playback with offset {currentOffsetMs}ms");
+        Debug.Log($"AudioManager: Beat 0 will occur at {currentOffsetMs}ms into playback");
     }
 
     /// <summary>
